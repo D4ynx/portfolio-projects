@@ -1,33 +1,15 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
 from db.database import engine, Base, get_db
 from models.user import User 
 from models.quest import Quest
 from api.auth import hash_password, verify_password, create_token, verify_token
 from sqlalchemy.orm import Session
-from datetime import date
+from schemas import RegisterRequest, LoginRequest, QuestRequest, QuestResponse
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-## CLASSES for AUTH
-class RegisterRequest(BaseModel):
-    username : str
-    name : str
-    email : str
-    password : str
-    
-class LoginRequest(BaseModel):
-    email : str
-    password : str
-
-class QuestRequest(BaseModel):
-    quest_name : str
-    quest_description: str
-    xp_earned : int
-    quest_deadline : date
-    
 ## INITIATION
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -79,7 +61,6 @@ def protected(token: str = Depends(oauth2_scheme)):
 
 
 ## METHOD FOR CURRENT USER
-
 def get_current_user(token: str = Depends(oauth2_scheme)):
     verification_user_id = verify_token(token)
     if verification_user_id:
@@ -88,13 +69,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Invalid User")
     
 ## FOR QUESTS / quest.py
-
-@app.get("/quests")
+@app.get("/quests", response_model = list[QuestResponse])
 def show_quests(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
         user_quests = db.query(Quest).filter(Quest.user_id == user_id).all()
         return user_quests
         
-@app.post("/quests")
+@app.post("/quests", response_model = QuestResponse)
 def create_quests(data: QuestRequest, user_id: int = Depends(get_current_user),  db: Session = Depends(get_db)):
         new_quest = Quest(
             quest_name = data.quest_name,
@@ -105,11 +85,11 @@ def create_quests(data: QuestRequest, user_id: int = Depends(get_current_user), 
         )
         db.add(new_quest)
         db.commit()
+        db.refresh(new_quest)
         
-        return {"message": "Quest successfully created!",
-                "user_id": user_id}
+        return new_quest
     
-@app.get("/quests/{quest_id}")
+@app.get("/quests/{quest_id}", response_model = QuestResponse)
 def show_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
         quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
         if not quest:
@@ -119,7 +99,7 @@ def show_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id: i
         else:
             return quest
 
-@app.put("/quests/{quest_id}")
+@app.put("/quests/{quest_id}", response_model = QuestResponse)
 def update_specific_quest(quest_id: int, data: QuestRequest, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
         quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
         if not quest:
@@ -135,10 +115,7 @@ def update_specific_quest(quest_id: int, data: QuestRequest, db: Session = Depen
             db.commit()
             db.refresh(quest)
     
-        return{
-            "message": "Quest updated successfully",
-             "quest": quest_id,
-        }
+        return quest
     
 @app.delete("/quests/{quest_id}")
 def delete_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
