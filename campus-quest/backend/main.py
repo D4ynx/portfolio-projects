@@ -1,14 +1,8 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from db.database import engine, Base, get_db
-from models.user import User 
-from models.quest import Quest
-from api.auth import hash_password, verify_password, create_token, verify_token
-from sqlalchemy.orm import Session
-from schemas import RegisterRequest, LoginRequest, QuestRequest, QuestResponse, UserResponse, LoginResponse
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+from fastapi import FastAPI
+from db.database import engine, Base
+from api.auth import router as auth_router
+from api.quest import router as quests_router
 
 ## INITIATION
 @asynccontextmanager
@@ -18,119 +12,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-## FOR LOGIN / AUTHENTICATION -- auth.py
 @app.get("/")
 def root():
     return {"message": "Campus Quest API is running "}
 
-@app.post("/auth/register", response_model = UserResponse)
-def register(data: RegisterRequest, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.user_email == data.email).first()
-    if existing_user:
-        raise HTTPException(status_code=409, detail="User already exists")
-        
-    hashed = hash_password(data.password)
-        
-    new_user = User(
-        username = data.username,
-        user_email = data.email,
-        user_password = hashed,
-        name = data.name,
-    )
-    
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    
-    return new_user
-
-@app.post("/auth/login", response_model = LoginResponse)
-def login(data: LoginRequest, db: Session = Depends(get_db)):
-    existing_user = db.query(User).filter(User.user_email == data.email).first()
-    
-    if existing_user and verify_password(data.password, existing_user.user_password):
-        return {"token": create_token(existing_user.user_id)}
-    
-    else:
-        raise HTTPException(status_code=401, detail= "Credentials does not match")
-    
-@app.get("/protected")
-def protected(token: str = Depends(oauth2_scheme)):
-    user_id = verify_token(token)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Invalid Token")
-    return {"user_id": user_id}
-
-
-## METHOD FOR CURRENT USER
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    verification_user_id = verify_token(token)
-    if verification_user_id:
-        return verification_user_id
-    else:
-        raise HTTPException(status_code=401, detail="Invalid User")
+## FOR LOGIN / AUTHENTICATION -- auth.py
+app.include_router(auth_router, prefix="/auth")
     
 ## FOR QUESTS / quest.py
-@app.get("/quests", response_model = list[QuestResponse])
-def show_quests(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
-        user_quests = db.query(Quest).filter(Quest.user_id == user_id).all()
-        return user_quests
-        
-@app.post("/quests", response_model = QuestResponse)
-def create_quests(data: QuestRequest, user_id: int = Depends(get_current_user),  db: Session = Depends(get_db)):
-        new_quest = Quest(
-            quest_name = data.quest_name,
-            quest_description = data.quest_description,
-            xp_earned = data.xp_earned,
-            quest_deadline = data.quest_deadline,
-            user_id = user_id,
-        )
-        db.add(new_quest)
-        db.commit()
-        db.refresh(new_quest)
-        
-        return new_quest
-    
-@app.get("/quests/{quest_id}", response_model = QuestResponse)
-def show_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
-        quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
-        if not quest:
-            raise HTTPException(status_code=404, detail="Record does not exist")
-        if quest.user_id != user_id:
-            raise HTTPException(status_code=403, detail="Unauthorized access")
-        else:
-            return quest
-
-@app.put("/quests/{quest_id}", response_model = QuestResponse)
-def update_specific_quest(quest_id: int, data: QuestRequest, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
-        quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
-        if not quest:
-            raise HTTPException(status_code=404, detail="Record does not exist")
-        if quest.user_id != user_id:
-            raise HTTPException(status_code=403, detail="Unauthorized Access")
-        else:
-            quest.quest_name = data.quest_name
-            quest.quest_description = data.quest_description
-            quest.xp_earned = data.xp_earned
-            quest.quest_deadline = data.quest_deadline
-
-            db.commit()
-            db.refresh(quest)
-    
-        return quest
-    
-@app.delete("/quests/{quest_id}")
-def delete_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
-    
-       quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
-       if not quest:
-           raise HTTPException(status_code=404, detail="Record does not exist")
-       if quest.user_id != user_id:
-            raise HTTPException(status_code=403, detail="Unauthorized Access")
-       else:
-            db.delete(quest)
-            db.commit()
-            
-       return{
-            "message": "Quest deleted successfully",
-        }
+app.include_router(quests_router, prefix="/quests")
