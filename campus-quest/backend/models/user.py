@@ -11,13 +11,6 @@ class User(Base):
     name = Column(String)
     user_xp = Column(Integer, default=0)
     user_streak = Column(Integer, default=0)
-    
-class Guild(Base):
-    __tablename__ = "guild"
-    
-    guild_id = Column(Integer, primary_key=True, index=True)
-    guild_name = Column(String, unique=True)
-    guild_description = Column(String, unique=True)
 
 class Achievement(Base):
     __tablename__ = "achievement"
@@ -37,23 +30,6 @@ class StreakHistory(Base):
     streak_date = Column(Date)
     status = Column(Enum("active", "broken", "retained", name="status_enum", default="active"))
     streak_broken_reason = Column(String) #Will convert to ENUM
-
-# Junction Table User <-> Guilds
-class UserGuild(Base):
-    __tablename__ = "user_guild"
-    
-    user_guild_id = Column(Integer, primary_key=True, index=True)
-    guild_id = Column(Integer, ForeignKey("guild.guild_id"))
-    user_id = Column(Integer, ForeignKey("users.user_id"))
-    joined_at = Column(Date)
-    role = Column(String) #Will convert to ENUM [guild_master, officer, member]
-    rank = Column(String) #Will convert to ENUM [bronze, silver, gold]
-    status = Column(String) #Wll convert to ENUM [active, inactive]
-    xp_contributed = Column(Integer)
-    last_activity = Column(Date)
-    
-    __table_args__ = (UniqueConstraint("guild_id", "user_id", "status"),)
-
     
 #Junction Table User <-> Achievement
 class UserAchievement(Base):
