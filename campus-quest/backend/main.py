@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from db.database import engine, Base
 from api.auth import router as auth_router
 from api.quest import router as quests_router
+from api.user import router as user_router
 
 ## INITIATION
 @asynccontextmanager
@@ -19,5 +20,9 @@ def root():
 ## FOR LOGIN / AUTHENTICATION -- auth.py
 app.include_router(auth_router, prefix="/auth")
     
+## FOR USER DETAILS
+app.include_router(user_router, prefix="/users")
+
 ## FOR QUESTS / quest.py
 app.include_router(quests_router, prefix="/quests")
+
