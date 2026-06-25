@@ -4,6 +4,7 @@ from db.database import engine, Base
 from api.auth import router as auth_router
 from api.quest import router as quests_router
 from api.user import router as user_router
+from api.guild import router as guild_router
 
 ## INITIATION
 @asynccontextmanager
@@ -25,4 +26,7 @@ app.include_router(user_router, prefix="/users")
 
 ## FOR QUESTS / quest.py
 app.include_router(quests_router, prefix="/quests")
+
+## FOR GUILD / guild.py
+app.include_router(guild_router, prefix="/guilds")
 
