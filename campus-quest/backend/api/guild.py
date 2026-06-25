@@ -4,7 +4,7 @@ from models.guild import Guild
 from models.user_guilds import UserGuild
 from db.database import get_db
 from services.guild_services import verify_membership, verify_guild, verify_owner
-from services.auth_services import get_current_user
+from api.dependencies import get_current_user
 from sqlalchemy.orm import Session
 
 router = APIRouter()

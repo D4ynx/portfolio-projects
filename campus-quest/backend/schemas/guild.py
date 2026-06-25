@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict
 from enum import Enum
-from datetime import date
+from datetime import datetime, date
 from typing import Optional
 
 class GuildStatus(Enum):
@@ -24,7 +24,7 @@ class GuildResponse(BaseModel):
     guild_description : str
     status : GuildStatus
     created_by : int
-    created_at : date 
+    created_at : datetime
     
 class GuildMemberResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
