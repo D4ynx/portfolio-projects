@@ -12,15 +12,5 @@ class LoginRequest(BaseModel):
     password : str
     
 ## Pydantic Models - Response
-class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    user_id : int
-    username : str
-    user_email : str
-    name: str
-    user_xp: int
-    user_streak: int
-    
 class LoginResponse(BaseModel):    
     token: str

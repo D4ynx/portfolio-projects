@@ -2,7 +2,6 @@ import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
 
-
 ## PASSWORD AND TOKENIZATION
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
