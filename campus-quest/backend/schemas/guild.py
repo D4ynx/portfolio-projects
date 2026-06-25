@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from enum import Enum
 from datetime import date
+from typing import Optional
 
 class GuildStatus(Enum):
     active = "active"
@@ -33,5 +34,5 @@ class GuildMemberResponse(BaseModel):
     user_id : int
     joined_at : date
     role : GuildRole
-    xp_contributed : int
-    last_activity : date
+    xp_contributed : Optional[int]
+    last_activity : Optional[date]
