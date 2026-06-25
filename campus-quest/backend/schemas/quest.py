@@ -19,8 +19,12 @@ class QuestResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
     quest_id : int
-    quest_name : str
+    quest_name : str    
     quest_description: str
     xp_earned : int
     quest_deadline: date
+    quest_status: QuestStatus
+
+## Patch Model - Status Update
+class QuestStatusUpdate(BaseModel):
     quest_status: QuestStatus

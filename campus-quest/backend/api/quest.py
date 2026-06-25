@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.database import get_db
 from models.quest import Quest
-from schemas import QuestRequest, QuestResponse
+from schemas import QuestRequest, QuestResponse, QuestStatusUpdate
 from api.dependencies import get_current_user
 from sqlalchemy.orm import Session
 
 router = APIRouter()
-
 
 ## ENDPOINTS
 @router.get("/", response_model = list[QuestResponse])
@@ -72,3 +71,19 @@ def delete_specific_quest(quest_id: int, db: Session = Depends(get_db), user_id:
        return{
             "message": "Quest deleted successfully",
         }
+       
+@router.patch("/{quest_id}/status", response_model = QuestResponse)
+def update_quest_status(data: QuestStatusUpdate, quest_id: int, db: Session = Depends(get_db), user_id: int = Depends(get_current_user)):
+    
+    quest = db.query(Quest).filter(Quest.quest_id == quest_id).first()
+    if not quest:
+        raise HTTPException(status_code=404, detail="Record does not exist")
+    if quest.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized Access")
+    else:
+        quest.quest_status = data.quest_status.value
+        
+        db.commit()
+        db.refresh(quest)
+    
+    return quest
