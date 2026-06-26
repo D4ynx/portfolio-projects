@@ -13,15 +13,27 @@ router = APIRouter()
 
 @router.get("/me", response_model = UserResponse)
 def show_user(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
+    user = get_user_by_id(user_id, db)
     if not user:
         raise HTTPException(status_code = 404, detail = "Record does not exist")
-    return user
+        
+    user_information = {
+        "user_id" : user.user_id,
+        "username" : user.username,
+        "user_email" : user.user_email,
+        "name" : user.name,
+        "user_xp" :  user.user_xp,
+        "user_streak" : user.user_streak,
+        "level" : calculate_level(user.user_xp),
+    }
+    
+    return user_information
+     
 
 
 @router.put("/me", response_model = UserResponse)
 def update_user(data: UserUpdateRequest, user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.user_id == user_id).first()
+    user = get_user_by_id(user_id, db)
     
     user.username = data.username
     user.name = data.name
@@ -29,7 +41,17 @@ def update_user(data: UserUpdateRequest, user_id: int = Depends(get_current_user
     db.commit()
     db.refresh(user)
         
-    return user
+    user_information = {
+        "user_id" : user.user_id,
+        "username" : user.username,
+        "user_email" : user.user_email,
+        "name" : user.name,
+        "user_xp" :  user.user_xp,
+        "user_streak" : user.user_streak,
+        "level" : calculate_level(user.user_xp),
+    }
+    
+    return user_information
 
 @router.get("/me/level", response_model = UserXPResponse)
 def update_level(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -37,7 +59,7 @@ def update_level(user_id: int = Depends(get_current_user), db: Session = Depends
     xp = user.user_xp
     level = calculate_level(xp)
     
-    xp_needed = xp_cap(level + 1) - user.user_xp
+    xp_needed = round(xp_cap(level) - user.user_xp)
     
     level_information = {
         "user_id" : user.user_id,

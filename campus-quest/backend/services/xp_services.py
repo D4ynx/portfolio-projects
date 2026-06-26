@@ -1,6 +1,6 @@
 from models.user import User
 from sqlalchemy.orm import Session
-from api.dependencies import get_current_user
+from services.auth_services import get_user_by_id
 
 from constants import BASE_XP, XP_MULTIPLIER, EXPONENT
 
@@ -21,7 +21,7 @@ def calculate_level(xp: int):
     return level
 
 def save_xp (streak: int, user_id:int, db: Session):
-    user = get_current_user(user_id, db)
+    user = get_user_by_id(user_id, db)
     add_xp = calculate_xp(streak)
     
     user.user_xp = user.user_xp + add_xp

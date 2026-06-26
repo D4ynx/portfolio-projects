@@ -9,6 +9,7 @@ class UserResponse(BaseModel):
     name: str
     user_xp: int
     user_streak: int
+    level : int
     
 class UserUpdateRequest(BaseModel):
     username : str
