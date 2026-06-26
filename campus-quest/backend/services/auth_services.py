@@ -1,6 +1,8 @@
 import bcrypt
 from jose import jwt
 from datetime import datetime, timedelta
+from models.user import User
+from sqlalchemy.orm import Session
 
 ## PASSWORD AND TOKENIZATION
 SECRET_KEY = "your-secret-key"
@@ -28,3 +30,8 @@ def create_token(user_id):
 def verify_token(token):
     decoded_token = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     return decoded_token["user_id"]
+
+## METHOD TO GET CURRENT USER ID
+def get_user_by_id(user_id: int, db: Session):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    return user

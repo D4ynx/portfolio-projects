@@ -3,7 +3,9 @@ from db.database import get_db
 from models.quest import Quest
 from schemas import QuestRequest, QuestResponse, QuestStatusUpdate
 from api.dependencies import get_current_user
+from services.auth_services import get_user_by_id
 from services.quest_services import verify_quest
+from services.xp_services import save_xp, calculate_xp
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -65,6 +67,11 @@ def update_status_quest(data: QuestStatusUpdate, quest_id: int, db: Session = De
     
     quest = verify_quest(quest_id, user_id, db)
     
+    if data.quest_status.value == "completed" and quest.quest_status != "completed" :
+        user = get_user_by_id(user_id, db)
+        streak = user.user_streak + 1
+        save_xp (streak, user_id, db)
+            
     quest.quest_status = data.quest_status.value
     
     db.commit()

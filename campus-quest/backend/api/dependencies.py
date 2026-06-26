@@ -4,7 +4,7 @@ from services.auth_services import verify_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-## METHOD FOR CURRENT USER
+## METHOD FOR CURRENT USER (TOKEN)
 def get_current_user(token: str = Depends(oauth2_scheme)):
     verification_user_id = verify_token(token)
     if verification_user_id:
@@ -12,3 +12,5 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     else:
         raise HTTPException(status_code=401, detail="Invalid User")
     
+## METHOD TO GET CURRENT USER ID
+def 
