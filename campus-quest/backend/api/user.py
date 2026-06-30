@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.dependencies import get_current_user
 from db.database import get_db
 from models.user import User
+from models.streak import StreakHistory
 from services.auth_services import get_user_by_id 
 from services.xp_services import calculate_level, xp_cap
-from schemas import UserUpdateRequest, UserResponse, UserXPResponse
+from schemas import UserUpdateRequest, UserResponse, UserXPResponse, UserStreakResponse
 from sqlalchemy.orm import Session
 
 router = APIRouter()
@@ -71,4 +72,14 @@ def update_level(user_id: int = Depends(get_current_user), db: Session = Depends
     }
     
     return level_information
+
+@router.get("/me/streak", response_model = UserStreakResponse)
+def show_streak_history(user_id: int = Depends(get_current_user), db: Session = Depends(get_db)):
+    user = get_user_by_id(user_id, db)
     
+    current_streak = db.query(StreakHistory).filter(StreakHistory.user_id == user.user_id).order_by(StreakHistory.streak_date.desc()).first()
+    
+    if current_streak:
+        return current_streak
+    else:
+        raise HTTPException(status_code= 404, detail="Record does not exist")

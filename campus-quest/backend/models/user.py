@@ -21,15 +21,7 @@ class Achievement(Base):
     achievement_xp = Column(Integer)
     condition = Column(String)
 
-class StreakHistory(Base):
-    __tablename__ = "streak_history"
-    
-    streak_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.user_id"))
-    count = Column(Integer)
-    streak_date = Column(Date)
-    status = Column(Enum("active", "broken", "retained", name="status_enum", default="active"))
-    streak_broken_reason = Column(String) #Will convert to ENUM
+
     
 #Junction Table User <-> Achievement
 class UserAchievement(Base):

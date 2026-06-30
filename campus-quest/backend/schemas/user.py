@@ -1,5 +1,12 @@
 from pydantic import BaseModel, ConfigDict
+from datetime import date
+from enum import Enum
 
+class StreakStatusEnum(Enum):
+    active = "active"
+    broken = "broken"
+    retained = "retained"
+    
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     
@@ -24,3 +31,13 @@ class UserXPResponse(BaseModel):
     user_streak: int
     level: int
     user_xp_needed: int
+    
+class UserStreakResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    streak_id: int
+    user_id : int
+    streak_count : int
+    streak_date : date
+    status : StreakStatusEnum
+    streak_restore : int
