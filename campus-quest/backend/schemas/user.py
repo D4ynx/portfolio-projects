@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from typing import Optional
 from datetime import date
 from enum import Enum
 
@@ -16,7 +17,7 @@ class UserResponse(BaseModel):
     name: str
     user_xp: int
     user_streak: int
-    level : int
+    level : Optional[int] = None
     
 class UserUpdateRequest(BaseModel):
     username : str

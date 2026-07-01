@@ -14,3 +14,4 @@ class LoginRequest(BaseModel):
 ## Pydantic Models - Response
 class LoginResponse(BaseModel):    
     token: str
+    
