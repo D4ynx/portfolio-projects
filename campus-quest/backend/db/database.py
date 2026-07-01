@@ -1,12 +1,15 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from dotenv import load_dotenv
+import os
 
-DATABASE_URL = "postgresql://postgres:password@localhost:5432/campus_quest"
+load_dotenv(".env")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
-def get_db ():
+def get_db():
     db = SessionLocal()
     try:
         yield db
@@ -14,4 +17,5 @@ def get_db ():
         db.close()
     
 class Base(DeclarativeBase):
+    
     pass
