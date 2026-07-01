@@ -8,6 +8,7 @@ test_db = SessionLocal()
 test_db.query(StreakHistory).filter(StreakHistory.user_id == 3).delete()
 test_db.commit()
 
+## test data
 test_streak = StreakHistory(
     user_id = 3,
     streak_count = 1,

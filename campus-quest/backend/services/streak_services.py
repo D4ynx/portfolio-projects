@@ -91,18 +91,22 @@ def update_streak(user_id: int, db: Session):
         return create_streak(user.user_id, db)
     
     else:
-        gap = date.today() - latest_streak_record.streak_date
+        if latest_streak_record.streak_date.month != date.today().month or latest_streak_record.streak_date.year != date.today().year:
+            latest_streak_record.streak_restore = 5
+            db.commit()
         
+        gap = date.today() - latest_streak_record.streak_date
+            
         if gap.days == 0:
             return latest_streak_record
-        
+            
         elif gap.days == 1:
             return increase_streak(user.user_id, db)
-            
+                
         elif gap.days >= 2:
             if latest_streak_record.streak_restore > 0:
                 return restore_streak(latest_streak_record.user_id, db)
-        
+            
             else:
                 return break_streak(latest_streak_record.user_id, db)
         
